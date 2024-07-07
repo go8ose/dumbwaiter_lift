@@ -1,0 +1,3 @@
+This is an experiment. I'm worried the OpenPLC project in the root folder
+won't be able to do the MQTT that I want. Hence I'm going to try and
+reimplement the logic in MicroPython.
