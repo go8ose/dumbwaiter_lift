@@ -1,3 +1,2 @@
-This is an experiment. I'm worried the OpenPLC project in the root folder
-won't be able to do the MQTT that I want. Hence I'm going to try and
-reimplement the logic in MicroPython.
+This is an experiment. It's meant to be a python project to control a small lift
+that only has two levels, and ground level and a first level.
