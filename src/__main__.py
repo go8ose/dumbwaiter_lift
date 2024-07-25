@@ -14,7 +14,7 @@ class LiftSetupError(Exception):
 class OutPin:
     def __init__(self, channel, initial_value=GPIO.LOW):
         self.channel = channel
-        GPIO.setup(channel, GPIO.OUT, initial_value, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(channel, GPIO.OUT, initial_value)
 
     def __call__(self, value):
         gpio.output(self.channel, value)
