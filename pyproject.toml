@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dumb_waiter"
+version = "0.0.1"
+authors = [
+  { name="Geoff Crompton", email="geoff+dumb_waiter@cromp.id.au" },
+]
+description = "Library to control a small goods lift, with the package running on a raspberry Pi"
+readme = "README"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: Console",
+    "Environment :: No Input/Output (Daemon)",
+    "Framework :: AsyncIO",
+    "Topic :: Home Automation",
+]
+dependencies = [
+  "paho-mqtt==2.1.0",
+]
+[project.optional-dependencies]
+production = [
+    "RPi>=0.7.1",
+]
+dev = [
+    "pytest",
+    "pip-tools",
+]
+[project.scripts]
+dumbwaiter_lift = "dumb_waiter:main_cli"
+
+[project.urls]
+Homepage = "https://github.com/go8ose/dumbwaiter_lift"
+Issues = "https://github.com/go8ose/dumbwaiter_lift/issues"
