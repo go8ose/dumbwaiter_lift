@@ -1,2 +1,16 @@
 This is an experiment. It's meant to be a python project to control a small lift
 that only has two levels, and ground level and a first level.
+
+Currently this project is setup to use "pip-compile" from the pip-tools package to 
+build a requirements file in the dumb_water.egg-info/rqeuiest.txt file. However
+the author hasn't setup all the tooling (and instructions) to do a full python
+source package build, and upload to somewhere (like github files for releases).
+
+To use this software you should: (this is an aspirational series of steps, they haven't been tested yet)
+ 0. setup your raspberry pi so you have console access to it, python is installed, and pip-tools is installed.
+ 1. clone the repo to your raspberry pi
+ 2. create a python venv and activate it
+ 3. compile the dependencies, by running: pip-compile
+ 4. install dependencies, by running: python -m pip install .[production]
+ 5. run it by executing dumbwaiter_lift
+
