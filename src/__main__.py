@@ -46,7 +46,7 @@ def main():
     comms = dumb_waiter.Comms('localhost')
     OutputFactory = dumb_waiter.io.OutputFactory(comms=comms)
     InputFactory = dumb_waiter.io.InputFactory(comms=comms)
-    lift = dump_waiter.lift(
+    lift = dumb_waiter.lift(
         raise_lift = OutputFactory(name='Raise', callback=pinO_lift_up_button),
         lower_lift = OutputFactory(name='Lower', callback=pinO_lift_down_button),
         lock_doors = OutputFactory(name='LockDoors', callback=lock_doors),
