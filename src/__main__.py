@@ -83,7 +83,7 @@ def main():
         limit_bottom = InputFactory(name='Limit Bottom', callback=lower_limit_cb),
         door_closed_level1 = InputFactory(name='Door Closed Level1', callback=door_closed_level1_cb),
         door_closed_ground = InputFactory(name='Door Closed Ground', callback=door_closed_ground_cb),
-        estop = InputFactory(name='EStop', callback=estore_cb),
+        estop = InputFactory(name='EStop', callback=estop_cb),
     )
 
     asyncio.run(lift.main())
