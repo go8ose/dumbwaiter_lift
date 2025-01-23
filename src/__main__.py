@@ -3,6 +3,7 @@ try:
 except RuntimeError:
     print("Error importing RPi.GPIO! You may need to pip install it, or you may need superuser privileges.  You can achieve this by using 'sudo' to run your script")
 
+import asyncio
 
 import dumb_waiter
 
