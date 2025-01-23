@@ -72,7 +72,7 @@ def main():
         return pinI_door_closed_ground()
 
     pinI_estop = InPin(29)
-    def estop_cb(p):
+    def estop_cb():
         return pinI_estop()
 
     lift = dumb_waiter.lift(
