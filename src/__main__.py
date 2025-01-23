@@ -79,7 +79,7 @@ def main():
         lower_lift = OutputFactory(name='Lower', callback=pinO_lift_down_button),
         lock_doors = OutputFactory(name='LockDoors', callback=lock_doors),
         call_button = InputFactory(name='Call Button', callback='Button'),
-        limit_top = InputFactory(name='Limit Top', default=pinI_upper_limit.value),
+        limit_top = InputFactory(name='Limit Top', callback=upper_limit_cb),
         limit_bottom = InputFactory(name='Limit Bottom', callback=lower_limit_cb),
         door_closed_level1 = InputFactory(name='Door Closed Level1', callback=door_closed_level1_cb),
         door_closed_ground = InputFactory(name='Door Closed Ground', callback=door_closed_ground_cb),
