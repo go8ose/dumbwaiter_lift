@@ -68,7 +68,7 @@ class InputButton(Input):
 class InputFactory:
     def __init__(self, comms):
         self.comms = comms
-    def __call__(self, name, default, kind='Value'):
+    def __call__(self, name, default=False, kind='Value'):
         if kind == 'Button':
             return InputButton(name=name, default=False, comms=self.comms)
         else:
