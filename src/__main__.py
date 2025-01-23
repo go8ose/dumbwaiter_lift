@@ -18,7 +18,7 @@ class OutPin:
         GPIO.setup(channel, GPIO.OUT, initial=initial_value)
 
     def __call__(self, value):
-        gpio.output(self.channel, value)
+        GPIO.output(self.channel, value)
 
 class InPin:
     def __init__(self, channel):
@@ -26,7 +26,7 @@ class InPin:
         GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     def __call__(self):
-        return gpio.input(self.channel)
+        return GPIO.input(self.channel)
 
 class InPinEdge(InPin):
     def __init__(self, channel, edge, callback):
