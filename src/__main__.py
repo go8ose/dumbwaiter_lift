@@ -39,6 +39,8 @@ def main():
 
     pinO_lift_up_button = OutPin(7)
     pinO_lift_down_button = OutPin(11)
+    
+    # TODO: Rename "lock_doors" to lock upper door. Add a lock button door.
     lock_doors = OutPin(31)
 
 
@@ -53,41 +55,35 @@ def main():
     pinI_call_pb = InPinEdge(13, GPIO.FALLING, callback=call_pressed)
 
     pinI_lower_limit = InPin(15)
-    def lower_limit_handler(p):
-        lift.limit_bottom(p)
-    pinI_call_pb.irq(handler=lower_limit_handler)
+    def lower_limit_cb():
+        return pinI_lower_limit()
 
     pinI_upper_limit = InPin(16)
-    def upper_limit_handler(p):
-        lift.limit_top(p)
-    pinI_upper_limit.irq(handler=upper_limit_handler)
+    def upper_limit_cb():
+        return pinI_upper_limit()
 
     pinI_door_closed_level1 = InPin(18)
-    def door_closed_level1_handler(p):
-        lift.door_closed_level1(p)
-    pinI_door_closed_level1.irq(handler=door_closed_level1_handler)
+    def door_closed_level1_cb():
+        return pinI_door_closed_level1()
 
     pinI_door_closed_ground = InPin(22)
-    def door_closed_ground_handler(p):
-        lift.door_closed_ground(p)
-    pinI_door_closed_ground.irq(handler=door_closed_level1_handler)
-
+    def door_closed_ground_cb():
+        return pinI_door_closed_ground()
 
     pinI_estop = InPin(29)
-    def estop_handler(p):
-        lift.estop(p)
-    pinI_estop.irq(handler=door_closed_level1_handler)
+    def estop_cb(p):
+        return pinI_estop()
 
     lift = dumb_waiter.lift(
         raise_lift = OutputFactory(name='Raise', callback=pinO_lift_up_button),
         lower_lift = OutputFactory(name='Lower', callback=pinO_lift_down_button),
         lock_doors = OutputFactory(name='LockDoors', callback=lock_doors),
-        call_button=InputFactory(name='Call Button', kind='Button'),
-        limit_top=InputFactory(name='Limit Top', default=pinI_upper_limit.value),
-        limit_bottom=InputFactory(name='Limit Bottom', default=pinI_lower_limit.value),
-        door_closed_level1=InputFactory(name='Door Closed Level1', default=pinI_door_closed_level1.value),
-        door_closed_ground=InputFactory(name='Door Closed Ground', default=pinI_door_closed_ground.value),
-        estop=InputFactory(name='EStop', default=pinI_estop.value),
+        call_button = InputFactory(name='Call Button', callback='Button'),
+        limit_top = InputFactory(name='Limit Top', default=pinI_upper_limit.value),
+        limit_bottom = InputFactory(name='Limit Bottom', callback=lower_limit_cb),
+        door_closed_level1 = InputFactory(name='Door Closed Level1', callback=door_closed_level1_cb),
+        door_closed_ground = InputFactory(name='Door Closed Ground', callback=door_closed_ground_cb),
+        estop = InputFactory(name='EStop', callback=estore_cb),
     )
 
     asyncio.run(lift.main())
