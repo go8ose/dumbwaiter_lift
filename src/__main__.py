@@ -4,7 +4,7 @@ except RuntimeError:
     print("Error importing RPi.GPIO! You may need to pip install it, or you may need superuser privileges.  You can achieve this by using 'sudo' to run your script")
 
 
-import dump_waiter
+import dumb_waiter
 
 GPIO.setmode(GPIO.BOARD)
 
