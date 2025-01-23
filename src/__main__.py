@@ -14,7 +14,7 @@ class LiftSetupError(Exception):
 class OutPin:
     def __init__(self, channel, initial_value=GPIO.LOW):
         self.channel = channel
-        GPIO.setup(channel, GPIO.OUT, initial_value)
+        GPIO.setup(channel, GPIO.OUT, initial=initial_value)
 
     def __call__(self, value):
         gpio.output(self.channel, value)
@@ -37,18 +37,18 @@ class InPinEdge(InPin):
 
 def main():
 
-    pinO_lift_up_button = OutPin(0)
-    pinO_lift_down_button = OutPin(1)
+    pinO_lift_up_button = OutPin(7)
+    pinO_lift_down_button = OutPin(11)
 
 
     # Or I could either have a lift class that does take arguments for all the
     # I/O.
-    comms = dumb_waiter.Comms(server='localhost')
-    OutputFactory = io.OutputFactory(comms=comms)
-    InputFactory = io.InputFactory(comms=comms)
+    comms = dumb_waiter.Comms('localhost')
+    OutputFactory = dumb_waiter.io.OutputFactory(comms=comms)
+    InputFactory = dumb_waiter.io.InputFactory(comms=comms)
     lift = dump_waiter.lift(
-        raise_lift = OutputFactory(name='Raise', callback=pin0_lift_up_button),
-        lower_lift = OutputFactory(name='Lower', callback=pin0_lift_down_button),
+        raise_lift = OutputFactory(name='Raise', callback=pinO_lift_up_button),
+        lower_lift = OutputFactory(name='Lower', callback=pinO_lift_down_button),
         lock_doors = OutputFactory(name='LockDoors', callback=lock_doors),
         call_button=InputFactory(name='Call Button', kind='Button'),
         limit_top=InputFactory(name='Limit Top', default=pinI_upper_limit.value),
@@ -59,33 +59,33 @@ def main():
     )
 
 
-    pinI_call_pb = InPinEdge(2, GPI.FALLING, handler=call_pressed)
+    pinI_call_pb = InPinEdge(13, GPI.FALLING, handler=call_pressed)
     def call_pressed(channel):
         lift.call_button(True)
     pinI_call_pb.irq(handler=call_pressed, trigger=Pin.IRQ_FALLING)
 
-    pinI_lower_limit = InPin(3)
+    pinI_lower_limit = InPin(15)
     def lower_limit_handler(p):
         lift.limit_bottom(p)
     pinI_call_pb.irq(handler=lower_limit_handler)
 
-    pinI_upper_limit = InPin(4)
+    pinI_upper_limit = InPin(16)
     def upper_limit_handler(p):
         lift.limit_top(p)
     pinI_upper_limit.irq(handler=upper_limit_handler)
 
-    pinI_door_closed_level1 = InPin(5)
+    pinI_door_closed_level1 = InPin(18)
     def door_closed_level1_handler(p):
         lift.door_closed_level1(p)
     pinI_door_closed_level1.irq(handler=door_closed_level1_handler)
 
-    pinI_door_closed_ground = InPin(6)
+    pinI_door_closed_ground = InPin(22)
     def door_closed_ground_handler(p):
         lift.door_closed_ground(p)
     pinI_door_closed_ground.irq(handler=door_closed_level1_handler)
 
 
-    pinI_estop = InPin(7)
+    pinI_estop = InPin(29)
     def estop_handler(p):
         lift.estop(p)
     pinI_estop.irq(handler=door_closed_level1_handler)
