@@ -22,7 +22,7 @@ class OutPin:
 class InPin:
     def __init__(self, channel):
         self.channel = channel
-        GPIO.setup(channel, GPIO.IN)
+        GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     def __call__(self):
         return gpio.input(self.channel)
@@ -32,7 +32,7 @@ class InPinEdge(InPin):
         if edge not in (GPIO.RISING, GPIO.FALLING, GPIO.BOTH):
             raise LiftSetupError
         self.channel = channel
-        GPIO.setup(channel, GPIO.IN)
+        GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.add_event_detect(channel, edge, callback=callback, bouncetime=50)
 
 def main():
