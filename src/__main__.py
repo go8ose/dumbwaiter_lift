@@ -50,7 +50,7 @@ def main():
 
     def call_pressed(channel):
         lift.call_button(True)
-    pinI_call_pb = InPinEdge(13, GPIO.FALLING, handler=call_pressed)
+    pinI_call_pb = InPinEdge(13, GPIO.FALLING, callback=call_pressed)
 
     pinI_lower_limit = InPin(15)
     def lower_limit_handler(p):
