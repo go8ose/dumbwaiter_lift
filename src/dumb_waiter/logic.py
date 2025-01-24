@@ -1,4 +1,6 @@
 import asyncio
+import logging
+logger = logging.getLogger(__name__)
 
 from .io import Input,Output
 from .util import run_later
@@ -109,6 +111,7 @@ class Logic:
 
 
     def stop_lift(self):
+        logger.info("Stop the lift")
         if self.motor_state != LIFT_STOP:
             self.motor_state = LIFT_STOP
             self.raise_lift.off()
@@ -120,9 +123,11 @@ class Logic:
     def move_lift(self, direction):
         asyncio.create_task(run_later(delay=0.2,callback=self.lock_doors.on))
         if direction == LIFT_UP:
+            logger.info("Raise the lift")
             self.lower_lift.off()
             asyncio.create_task(run_later(delay=0.8,callback=self.raise_lift.on))
         if direction == LIFT_DOWN:
+            logger.info("Lower the lift")
             self.raise_lift.off()
             asyncio.create_task(run_later(delay=0.8,callback=self.lower_lift.on))
         

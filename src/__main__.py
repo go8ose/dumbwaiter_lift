@@ -1,5 +1,6 @@
 from gpiozero import DigitalInputDevice, OutputDevice
 import asyncio
+import logging
 
 import dumb_waiter
 
@@ -30,6 +31,8 @@ class InPin:
 #        GPIO.add_event_detect(channel, edge, callback=callback, bouncetime=50)
 
 def main():
+
+    logging.basicConfig()
 
     pinO_lift_up_button = OutPin("BOARD7")
     pinO_lift_down_button = OutPin("BOARD11")
