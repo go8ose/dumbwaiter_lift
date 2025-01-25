@@ -82,38 +82,42 @@ class Logic:
                 and self.door_closed_ground.value \
                 and not self.estop.value
             
+            if not safe_to_move and self.motor_state != LIFT_STOP:
+                logging.warning("Stop the lift, it's not safe!")
+                self.stop_lift()
+                await asyncio.sleep(SLEEP_TIME)
+                continue
 
             # Check if the calll button was pressed. This code assumes that the value property only
             # returns true once for each time the button is pressed.
             call_pressed = self.call_button.value
 
             #if self.loop_count % (1 / SLEEP_TIME) == 0:
-            #    logging.info(f"Is it safe to move? {safe_to_move}. Door level 1 {self.door_closed_level1.value} Door ground {self.door_closed_ground.value} Estop {self.estop.value}")
+                #logging.info(f"Is it safe to move? {safe_to_move}. Door level 1 {self.door_closed_level1.value} Door ground {self.door_closed_ground.value} Estop {self.estop.value}")
+                #logging.info(f"Lower limit {self.limit_bottom.value} top limit {self.limit_top.value}")
 
-            # Clear the call variable if it is not safe to move.
             if call_pressed and not safe_to_move:
                 logger.info("Call pressed when not safe to move")
-
-            if call_pressed:
+            elif call_pressed:
                 # If the motor is running, the user probably wants us to stop the motor
                 if self.motor_state != LIFT_STOP:
                     logger.info("Call pressed to stop lift")
-                    send_lift = LIFT_STOP
+                    self.stop_lift()
+                    await asyncio.sleep(SLEEP_TIME)
+                    continue
 
                 else:
+                    if self.limit_bottom.value and self.limit_top.value:
+                        # oh no. This likely means a limit is stuck.
+                        # TODO: emit a warning.
+                        logger.warning("Both limits are active, likely one is stuck")
                     # If on a limit, go away from it.
-                    if self.limit_bottom.value:
+                    elif self.limit_bottom.value:
                         send_lift = LIFT_UP
                         logger.info("Call pressed to send lift up")
                     elif self.limit_top.value:
                         send_lift = LIFT_DOWN
                         logger.info("Call pressed to send lift down")
-                    
-                    elif self.limit_bottom.value and self.limit_top.value:
-                        # oh no. This likely means a limit is stuck.
-                        # TODO: emit a warning.
-                        logger.warning("Both limits are active, likely one is stuck")
-                    
                     # If we don't know where the lift is, send it down.
                     else:
                         send_lift = LIFT_DOWN
@@ -129,8 +133,6 @@ class Logic:
     def stop_lift(self):
         if not self.estop.value and not self.limit_top.value and not self.limit_bottom.value:
             logger.info("Stop the lift, probably because of safety timer")
-        else:
-            logger.info("Stop the lift, not sure of reason")
 
         if self.motor_state != LIFT_STOP:
             self.motor_state = LIFT_STOP
