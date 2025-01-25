@@ -36,3 +36,7 @@ dumbwaiter_lift = "dumb_waiter:main_cli"
 [project.urls]
 Homepage = "https://github.com/go8ose/dumbwaiter_lift"
 Issues = "https://github.com/go8ose/dumbwaiter_lift/issues"
+
+[tool.pytest.ini_options]
+testpaths = [ "src/tests", ]
+
