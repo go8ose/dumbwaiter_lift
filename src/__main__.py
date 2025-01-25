@@ -16,8 +16,8 @@ class OutPin:
         self.dev.value = value
 
 class InPin:
-    def __init__(self, pin):
-        self.dev = DigitalInputDevice(pin=pin, bounce_time=0.01)
+    def __init__(self, pin, pull_up = False):
+        self.dev = Button(pin=pin, bounce_time=0.01, pull_up=pull_up)
 
     def __call__(self):
         return self.dev.value
@@ -26,8 +26,8 @@ class InPinFalling(InPin):
     '''A class that has a call back to be called then the input has a falling edge. It remembers that state.
     The "pressed" property will return True once after a falling edge'''
 
-    def __init__(self, pin):
-        self.dev = Button(pin=pin, bounce_time=0.01)
+    def __init__(self, pin, pull_up = False):
+        self.dev = Button(pin=pin, bounce_time=0.01, pull_up=pull_up)
         self._activated = False
         self.dev.when_deactivated = self.pressed_cb
 
@@ -58,23 +58,23 @@ def main():
 
     
     # TODO: Do I need all these call back functions? Or can I just past the bound methods?
-    pinI_call_pb = InPinFalling("BOARD13")
+    pinI_call_pb = InPinFalling("BOARD13", pull_up=True)
     def call_pressed():
         return pinI_call_pb.pressed
 
-    pinI_lower_limit = InPin("BOARD15")
+    pinI_lower_limit = InPin("BOARD15", pull_up=True)
     def lower_limit_cb():
         return pinI_lower_limit()
 
-    pinI_upper_limit = InPin("BOARD16")
+    pinI_upper_limit = InPin("BOARD16", pull_up=True)
     def upper_limit_cb():
         return pinI_upper_limit()
 
-    pinI_door_closed_level1 = InPin("BOARD18")
+    pinI_door_closed_level1 = InPin("BOARD18", pull_up=True)
     def door_closed_level1_cb():
         return pinI_door_closed_level1()
 
-    pinI_door_closed_ground = InPin("BOARD22")
+    pinI_door_closed_ground = InPin("BOARD22", pull_up=True)
     def door_closed_ground_cb():
         return pinI_door_closed_ground()
 
