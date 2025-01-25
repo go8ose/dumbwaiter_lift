@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 logger = logging.getLogger(__name__)
 
 from .io import Input,Output
@@ -47,7 +48,13 @@ class Logic:
         self.motor_state = LIFT_STOP
 
 
+        start_time = time.time()
         while True:
+
+            # log a message once every (approximately) 5 minutes
+            if self.loop_count % (5*60 / SLEEP_TIME) == 0:
+                logger.info(f"Lift logic still running, for {(time.time() - start_time)/60} minutes")
+
             self.loop_count += 1
 
             # For each time we loop around we will assume we will not be making
