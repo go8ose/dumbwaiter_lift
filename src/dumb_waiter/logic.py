@@ -87,6 +87,9 @@ class Logic:
             # returns true once for each time the button is pressed.
             call_pressed = self.call_button.value
 
+            #if self.loop_count % (1 / SLEEP_TIME) == 0:
+            #    logging.info(f"Is it safe to move? {safe_to_move}. Door level 1 {self.door_closed_level1.value} Door ground {self.door_closed_ground.value} Estop {self.estop.value}")
+
             # Clear the call variable if it is not safe to move.
             if call_pressed and not safe_to_move:
                 logger.info("Call pressed when not safe to move")
@@ -134,7 +137,7 @@ class Logic:
             self.raise_lift.off()
             self.lower_lift.off()
             if self.safety_timer_stop:
-                self.safety_timer_stop.deinit()
+                self.safety_timer_stop.cancel()
                 self.safety_timer_stop = None
             asyncio.create_task(run_later(delay=0.2,callback=self.lock_doors.off))
 
