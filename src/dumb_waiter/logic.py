@@ -55,6 +55,7 @@ class Logic:
             send_lift = None
 
             if self.estop.value:
+                logger.info("Stop the lift because of ESTOP being activated")
                 self.stop_lift()
                 await asyncio.sleep(SLEEP_TIME)
                 continue
@@ -64,6 +65,7 @@ class Logic:
             if (self.limit_top.value and self.motor_state == LIFT_UP) \
                 or (self.limit_bottom.value and self.motor_state == LIFT_DOWN):
 
+                logger.info("Stop the lift due to limit being reached")
                 self.stop_lift()
                 await asyncio.sleep(SLEEP_TIME)
                 continue
@@ -97,7 +99,7 @@ class Logic:
                     elif self.limit_bottom.value and self.limit_top.value:
                         # oh no. This likely means a limit is stuck.
                         # TODO: emit a warning.
-                        pass
+                        logger.warning("Both limits are active, likely one is stuck")
                     
                     # If we don't know where the lift is, send it down.
                     else:
@@ -111,7 +113,10 @@ class Logic:
 
 
     def stop_lift(self):
-        logger.info("Stop the lift")
+        if not self.estop.value and not self.limit_top.value and not self.limit_bottom.value:
+            logger.info("Stop the lift, probably because of safety timer")
+        else:
+            logger.info("Stop the lift, not sure of reason")
         if self.motor_state != LIFT_STOP:
             self.motor_state = LIFT_STOP
             self.raise_lift.off()
