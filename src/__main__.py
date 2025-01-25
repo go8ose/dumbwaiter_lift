@@ -78,7 +78,7 @@ def main():
     def door_closed_ground_cb():
         return pinI_door_closed_ground()
 
-    pinI_estop = InPin("BOARD29")
+    pinI_estop = InPin("BOARD29", pull_up=True)
     def estop_cb():
         return pinI_estop()
 
