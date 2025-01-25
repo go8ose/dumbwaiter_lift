@@ -128,6 +128,7 @@ class Logic:
             logger.info("Stop the lift, probably because of safety timer")
         else:
             logger.info("Stop the lift, not sure of reason")
+
         if self.motor_state != LIFT_STOP:
             self.motor_state = LIFT_STOP
             self.raise_lift.off()
@@ -135,6 +136,7 @@ class Logic:
             if self.safety_timer_stop:
                 self.safety_timer_stop.deinit()
                 self.safety_timer_stop = None
+            asyncio.create_task(run_later(delay=0.2,callback=self.lock_doors.off))
 
     def move_lift(self, direction):
         asyncio.create_task(run_later(delay=0.2,callback=self.lock_doors.on))
