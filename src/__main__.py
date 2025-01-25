@@ -43,7 +43,7 @@ class InPinFalling(InPin):
 
 def main():
 
-    logging.basicConfig()
+    logging.basicConfig(level=logging.INFO)
 
     pinO_lift_up_button = OutPin("BOARD7")
     pinO_lift_down_button = OutPin("BOARD11")

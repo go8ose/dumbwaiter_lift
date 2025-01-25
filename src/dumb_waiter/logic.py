@@ -53,7 +53,7 @@ class Logic:
 
             # log a message once every (approximately) 5 minutes
             if self.loop_count % (5*60 / SLEEP_TIME) == 0:
-                logger.info(f"Lift logic still running, for {(time.time() - start_time)/60} minutes")
+                logger.info(f"Lift logic still running, for {(time.time() - start_time)/60:0.2} minutes")
 
             self.loop_count += 1
 
