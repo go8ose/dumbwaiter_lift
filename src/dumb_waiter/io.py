@@ -16,6 +16,15 @@ class Input:
     def __repr__(self):
         return f'<dumb_waiter.lift_input {self.name}={self.value}'
 
+class InputFalling(Input):
+    '''An InputFalling is an input on the lift, that remembers if the input transitioned from high to low.
+    It allows the caller to clear that state'''
+
+    # TODO: work out how to use @property for both reading and writing. When reading call the callback. When writing...
+    # call the callback with an argumment???
+    @property
+    def value(self):
+        return self.callback()
 
 class InputFactory:
     def __init__(self, comms):

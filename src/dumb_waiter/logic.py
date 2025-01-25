@@ -76,15 +76,15 @@ class Logic:
                 and not self.estop.value
             
 
+            # Check if the calll button was pressed. This code assumes that the pressed property only
+            # returns true once for each time the button is pressed.
+            call_pressed = self.call_button.pressed
+
             # Clear the call variable if it is not safe to move.
-            if self.call_button.value and not safe_to_move:
-                self.call_button.value = False
+            if call_pressed and not safe_to_move:
+                logger("Call pressed when not safe to move")
 
-            # TODO: Work out what to do in io.py to support a falling edge IRQ call.
-            # If the button was pressed unset our call_button variable, and decided what to do.
-            if self.call_button.value and safe_to_move:
-                self.call_button.value = False
-
+            if call_pressed:
                 # If the motor is running, the user probably wants us to stop the motor
                 if self.motor_state != LIFT_STOP:
                     send_lift = LIFT_STOP

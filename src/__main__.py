@@ -17,18 +17,28 @@ class OutPin:
 
 class InPin:
     def __init__(self, pin):
-        self.dev = DigitalInputDevice(pin=pin, pull_up=False)
+        self.dev = DigitalInputDevice(pin=pin)
 
     def __call__(self):
         return self.dev.value
 
-#class InPinEdge(InPin):
-#    def __init__(self, channel, edge, callback):
-#        if edge not in (GPIO.RISING, GPIO.FALLING, GPIO.BOTH):
-#            raise LiftSetupError
-#        self.channel = channel
-#        GPIO.setup(channel, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-#        GPIO.add_event_detect(channel, edge, callback=callback, bouncetime=50)
+class InPinFalling(InPin):
+    '''A class that has a call back to be called then the input has a falling edge. It remembers that state.
+    The "pressed" property will return True once after a falling edge'''
+
+    def __init__(self, pin):
+        self.dev = DigitalInputDevice(pin=pin, pull_up=False, when_deactivated=self.pressed_cb)
+        self._activated = False
+
+    def pressed_cb(self):
+        self._activated = True
+
+    @property
+    def pressed(self):
+        if self._activated:
+            self._activated = False
+            return True
+        return False
 
 def main():
 
@@ -41,15 +51,15 @@ def main():
     lock_doors = OutPin("BOARD31")
 
 
-    # Or I could either have a lift class that does take arguments for all the
-    # I/O.
     comms = dumb_waiter.Comms('localhost')
     OutputFactory = dumb_waiter.io.OutputFactory(comms=comms)
     InputFactory = dumb_waiter.io.InputFactory(comms=comms)
 
-    pinI_call_pb = InPin("BOARD13")
+    
+    # TODO: Do I need all these call back functions? Or can I just past the bound methods?
+    pinI_call_pb = InPinFalling("BOARD13")
     def call_pressed():
-        return pinI_call_pb()
+        return pinI_call_pb.pressed()
 
     pinI_lower_limit = InPin("BOARD15")
     def lower_limit_cb():
