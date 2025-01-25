@@ -1,4 +1,4 @@
-from gpiozero import DigitalInputDevice, OutputDevice
+from gpiozero import DigitalInputDevice, OutputDevice, Button
 import asyncio
 import logging
 
@@ -17,7 +17,7 @@ class OutPin:
 
 class InPin:
     def __init__(self, pin):
-        self.dev = DigitalInputDevice(pin=pin)
+        self.dev = DigitalInputDevice(pin=pin, bounce_time=0.01)
 
     def __call__(self):
         return self.dev.value
@@ -27,7 +27,7 @@ class InPinFalling(InPin):
     The "pressed" property will return True once after a falling edge'''
 
     def __init__(self, pin):
-        self.dev = DigitalInputDevice(pin=pin, pull_up=False)
+        self.dev = Button(pin=pin, bounce_time=0.01)
         self._activated = False
         self.dev.when_deactivated = self.pressed_cb
 
