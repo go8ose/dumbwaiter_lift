@@ -68,10 +68,14 @@ class Logic:
             
             # If a limit has been hit, and it's a limit we might hit if we are
             # going in that direction, stop the motor.
-            if (self.limit_top.value and self.motor_state == LIFT_UP) \
-                or (self.limit_bottom.value and self.motor_state == LIFT_DOWN):
+            if (self.limit_top.value and self.motor_state == LIFT_UP): 
+                self.stop_lift(reason="Top limit being reached")
+                await asyncio.sleep(SLEEP_TIME)
+                continue
 
-                self.stop_lift(reason="Limit being reached")
+            if (self.limit_bottom.value and self.motor_state == LIFT_DOWN):
+
+                self.stop_lift(reason="Bottom limit being reached")
                 await asyncio.sleep(SLEEP_TIME)
                 continue
 
