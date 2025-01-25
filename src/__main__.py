@@ -1,6 +1,9 @@
-from gpiozero import DigitalInputDevice, OutputDevice, Button
 import asyncio
 import logging
+import argparse
+import sys
+
+#from gpiozero import DigitalInputDevice, OutputDevice, Button
 
 import dumb_waiter
 
@@ -41,9 +44,16 @@ class InPinFalling(InPin):
             return True
         return False
 
-def main():
+def main(argv):
 
-    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(prog='lift control logic')
+    parser.add_argument('-d', '--debug', action='store_true')
+    args = parser.parse_args(argv[1:])
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     pinO_lift_up_button = OutPin("BOARD7")
     pinO_lift_down_button = OutPin("BOARD11")
@@ -99,4 +109,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

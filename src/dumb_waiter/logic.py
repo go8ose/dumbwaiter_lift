@@ -51,8 +51,8 @@ class Logic:
         start_time = time.time()
         while True:
 
-            # log a message once every (approximately) 5 minutes
-            if self.loop_count % (5*60 / SLEEP_TIME) == 0:
+            # log a message once every so often
+            if self.loop_count % (15*60 / SLEEP_TIME) == 1:
                 logger.info(f"Lift logic still running, for {(time.time() - start_time)/60:0.2} minutes")
 
             self.loop_count += 1
@@ -94,9 +94,10 @@ class Logic:
             # returns true once for each time the button is pressed.
             call_pressed = self.call_button.value
 
-            #if self.loop_count % (1 / SLEEP_TIME) == 0:
-                #logging.info(f"Is it safe to move? {safe_to_move}. Door level 1 {self.door_closed_level1.value} Door ground {self.door_closed_ground.value} Estop {self.estop.value}")
-                #logging.info(f"Lower limit {self.limit_bottom.value} top limit {self.limit_top.value}")
+            # Every second log a debug message about current state of IO inputs
+            if self.loop_count % (1 / SLEEP_TIME) == 0:
+                logging.debug(f"Is it safe to move? {safe_to_move}. Door level 1 {self.door_closed_level1.value} Door ground {self.door_closed_ground.value} Estop {self.estop.value}")
+                logging.debug(f"Lower limit {self.limit_bottom.value} top limit {self.limit_top.value}")
 
             if call_pressed and not safe_to_move:
                 logger.info("Call pressed when not safe to move")
