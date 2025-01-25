@@ -1,7 +1,13 @@
 import sys
 import argparse
-from gpiozero import Button
+from gpiozero import Button, DigitalInputDevice
 from time import sleep
+import asyncio
+
+async def run(button):
+    while True:
+        print(f"{button.value}")
+        sleep(1)
 
 def main(argv):
     parser = argparse.ArgumentParser(
@@ -10,11 +16,11 @@ def main(argv):
     parser.add_argument('channel', type=int)
     args = parser.parse_args(argv[1:])
     
-    button = Button(args.channel)
+    #button = Button(args.channel, pull_up=True)
+    button = DigitalInputDevice(args.channel, pull_up=True)
 
-    while True:
-        print(f"{button.is_pressed}")
-        sleep(1)
+    asyncio.run(run(button))
+
 
 if __name__ == '__main__':
     main(sys.argv)
