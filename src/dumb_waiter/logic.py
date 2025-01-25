@@ -62,7 +62,8 @@ class Logic:
             send_lift = None
 
             if self.estop.value:
-                self.stop_lift(reason="ESTOP activated")
+                if self.motor_state != LIFT_STOP:
+                    self.stop_lift(reason="ESTOP activated")
                 await asyncio.sleep(SLEEP_TIME)
                 continue
             
