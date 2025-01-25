@@ -89,19 +89,22 @@ class Logic:
 
             # Clear the call variable if it is not safe to move.
             if call_pressed and not safe_to_move:
-                logger("Call pressed when not safe to move")
+                logger.info("Call pressed when not safe to move")
 
             if call_pressed:
                 # If the motor is running, the user probably wants us to stop the motor
                 if self.motor_state != LIFT_STOP:
+                    logger.info("Call pressed to stop lift")
                     send_lift = LIFT_STOP
 
                 else:
                     # If on a limit, go away from it.
                     if self.limit_bottom.value:
                         send_lift = LIFT_UP
+                        logger.info("Call pressed to send lift up")
                     elif self.limit_top.value:
                         send_lift = LIFT_DOWN
+                        logger.info("Call pressed to send lift down")
                     
                     elif self.limit_bottom.value and self.limit_top.value:
                         # oh no. This likely means a limit is stuck.
@@ -111,6 +114,7 @@ class Logic:
                     # If we don't know where the lift is, send it down.
                     else:
                         send_lift = LIFT_DOWN
+                        logger.info("Call pressed. Don't know where lift is, send down.")
 
             if send_lift:
                 self.motor_state = send_lift
