@@ -3,7 +3,7 @@ import logging
 import argparse
 import sys
 
-#from gpiozero import DigitalInputDevice, OutputDevice, Button
+from gpiozero import DigitalInputDevice, OutputDevice, Button
 
 import dumb_waiter
 
