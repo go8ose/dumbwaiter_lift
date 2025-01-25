@@ -62,8 +62,7 @@ class Logic:
             send_lift = None
 
             if self.estop.value:
-                logger.info("Stop the lift because of ESTOP being activated")
-                self.stop_lift()
+                self.stop_lift(reason="ESTOP activated")
                 await asyncio.sleep(SLEEP_TIME)
                 continue
             
@@ -72,8 +71,7 @@ class Logic:
             if (self.limit_top.value and self.motor_state == LIFT_UP) \
                 or (self.limit_bottom.value and self.motor_state == LIFT_DOWN):
 
-                logger.info("Stop the lift due to limit being reached")
-                self.stop_lift()
+                self.stop_lift(reason="Limit being reached")
                 await asyncio.sleep(SLEEP_TIME)
                 continue
 
@@ -83,8 +81,7 @@ class Logic:
                 and not self.estop.value
             
             if not safe_to_move and self.motor_state != LIFT_STOP:
-                logging.warning("Stop the lift, it's not safe!")
-                self.stop_lift()
+                self.stop_lift(reason="It's not safe!")
                 await asyncio.sleep(SLEEP_TIME)
                 continue
 
@@ -101,8 +98,7 @@ class Logic:
             elif call_pressed:
                 # If the motor is running, the user probably wants us to stop the motor
                 if self.motor_state != LIFT_STOP:
-                    logger.info("Call pressed to stop lift")
-                    self.stop_lift()
+                    self.stop_lift(reason="Call pressed")
                     await asyncio.sleep(SLEEP_TIME)
                     continue
 
@@ -130,8 +126,10 @@ class Logic:
             await asyncio.sleep(SLEEP_TIME)
 
 
-    def stop_lift(self):
-        if not self.estop.value and not self.limit_top.value and not self.limit_bottom.value:
+    def stop_lift(self, reason=''):
+        if reason != '':
+            logger.info(f"Stop the lift: {reason}")
+        else:
             logger.info("Stop the lift, probably because of safety timer")
 
         if self.motor_state != LIFT_STOP:
