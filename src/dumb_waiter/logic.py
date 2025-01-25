@@ -76,9 +76,9 @@ class Logic:
                 and not self.estop.value
             
 
-            # Check if the calll button was pressed. This code assumes that the pressed property only
+            # Check if the calll button was pressed. This code assumes that the value property only
             # returns true once for each time the button is pressed.
-            call_pressed = self.call_button.pressed
+            call_pressed = self.call_button.value
 
             # Clear the call variable if it is not safe to move.
             if call_pressed and not safe_to_move:

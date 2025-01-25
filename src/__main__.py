@@ -27,8 +27,9 @@ class InPinFalling(InPin):
     The "pressed" property will return True once after a falling edge'''
 
     def __init__(self, pin):
-        self.dev = DigitalInputDevice(pin=pin, pull_up=False, when_deactivated=self.pressed_cb)
+        self.dev = DigitalInputDevice(pin=pin, pull_up=False)
         self._activated = False
+        self.dev.when_deactivated = self.pressed_cb
 
     def pressed_cb(self):
         self._activated = True
@@ -59,7 +60,7 @@ def main():
     # TODO: Do I need all these call back functions? Or can I just past the bound methods?
     pinI_call_pb = InPinFalling("BOARD13")
     def call_pressed():
-        return pinI_call_pb.pressed()
+        return pinI_call_pb.pressed
 
     pinI_lower_limit = InPin("BOARD15")
     def lower_limit_cb():
