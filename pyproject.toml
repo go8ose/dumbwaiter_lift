@@ -20,11 +20,11 @@ classifiers = [
     "Topic :: Home Automation",
 ]
 dependencies = [
+    "gpiozero>=2.0.1",
+    "python-statemachine>=2.5.0"
 ]
 [project.optional-dependencies]
 production = [
-    "gpizero>=2.0.1",
-    "python-statemachine>=2.5.0"
 ]
 dev = [
     "pytest",
