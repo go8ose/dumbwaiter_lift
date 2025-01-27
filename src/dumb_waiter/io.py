@@ -1,49 +1,38 @@
+#from typing import Protocol, Callable, Optional
+from typing import Callable, Optional
+from abc import ABC, abstractmethod
 
+class Input(ABC):
+    '''Each input needs to be able to fire on edges (though for some, like door closed, we don’t 
+    trigger a state transition), and the state machine needs to be able to check each inputs current 
+    value.'''
 
-class Input:
-    '''An Input object is an input on the lift. When the lift wants to know the
-    status of the input, it calls the callback.'''
-    def __init__(self, name, callback, comms):
-        self.name = name
-        self.callback = callback
+    falling_edge_callback: Optional[Callable] = None
+    rising_edge_callback: Optional[Callable] = None
 
-    @property
-    def value(self):
-        return self.callback()
+    @abstractmethod
+    def __call__(self) -> bool:
+        '''Return the current value of the input'''
+        ...
 
-    def __str__(self):
-        return f"Input: {self.name}={self.value}"
-    def __repr__(self):
-        return f'<dumb_waiter.lift_input {self.name}={self.value}'
-
-class InputFactory:
-    def __init__(self, comms):
-        self.comms = comms
-    def __call__(self, name, callback):
-        return Input(name=name, callback=callback, comms=self.comms)
-
-# The lift needs to adjust a machine pin, but as mentioned above, I don't want to have the lift
-# know about micropython pins directly. And I want a place to "hook" for mqtt calls. Hence
-# this output needs to be provided with a callback so the main program can "tell" it how
-# to get pins set.
-class Output:
+class Output(ABC):
     '''An Output object is for the lift to have a way to communicate to
     an output pin. I'm trying to make the logic agnostic to where it is running.
     Hence when the logic wants to drive an output, we actually call the callback.
     '''
-    def __init__(self, name, callback=lambda x: None, comms=None):
-        self.name = name
-        self.callback = callback
 
-    def on(self):
-        self.callback(1)
+    @property
+    @abstractmethod
+    def value(self) -> bool:
+        '''Get the current value of the output'''
+        ...
 
-    def off(self):
-        self.callback(0)
+    @abstractmethod
+    def on(self) -> None:
+        '''Turn the output on'''
+        ...
 
-
-class OutputFactory:
-    def __init__(self, comms):
-        self.comms = comms
-    def __call__(self, name, callback):
-        return Output(name=name, callback=callback, comms=self.comms)
+    @abstractmethod
+    def off(self) -> None:
+        '''Turn the output off'''
+        ...

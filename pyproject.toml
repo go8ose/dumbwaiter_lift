@@ -20,11 +20,11 @@ classifiers = [
     "Topic :: Home Automation",
 ]
 dependencies = [
-  "paho-mqtt==2.1.0",
 ]
 [project.optional-dependencies]
 production = [
-    "RPi.GPIO>=0.7.1",
+    "gpizero>=2.0.1",
+    "python-statemachine>=2.5.0"
 ]
 dev = [
     "pytest",

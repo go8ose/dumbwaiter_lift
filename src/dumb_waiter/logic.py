@@ -1,162 +1,120 @@
-import asyncio
 import logging
-import time
-logger = logging.getLogger(__name__)
+from dataclasses import dataclass
+from typing import Optional
 
-from .io import Input,Output
+from asyncio import Task, create_task
+
+from statemachine import State
+from statemachine import StateMachine
+
+from .io import Input, Output
 from .util import run_later
 
-LIFT_UP = 1
-LIFT_DOWN = 2
-LIFT_STOP = 0
-
-SLEEP_TIME=0.1
-SAFETY_TIME=23
-
-class Logic:
-
-    def __init__(self,
-        raise_lift: Output,
-        lower_lift: Output,
-        lock_doors: Output,
-        call_button: Input,
-        limit_top: Input,
-        limit_bottom: Input,
-        door_closed_level1: Input,
-        door_closed_ground: Input,
-        estop: Input,
-    ):
-        self.raise_lift = raise_lift
-        self.lower_lift = lower_lift
-        self.lock_doors = lock_doors
-        self.call_button = call_button
-        self.limit_top = limit_top
-        self.limit_bottom = limit_bottom
-        self.door_closed_level1 = door_closed_level1
-        self.door_closed_ground = door_closed_ground
-        self.estop = estop
+logger = logging.getLogger(__name__)
 
 
-        # Some internal variables
-        self.motor_state = LIFT_STOP
-        self.safety_timer_stop = None
+@dataclass
+class LiftLogicModel:
+    estop: Input 
+    lower_limit: Input
+    upper_limit: Input
+    upper_door_closed: Input
+    lower_door_closed: Input
 
-        self.loop_count = 0
+    raise_lift: Output
+    lower_lift: Output
+    lock_door: Output
 
-
-    async def main(self):
-        self.motor_state = LIFT_STOP
-
-
-        start_time = time.time()
-        while True:
-
-            # log a message once every so often
-            if self.loop_count % (15*60 / SLEEP_TIME) == 1:
-                logger.info(f"Lift logic still running, for {(time.time() - start_time)/60:0.2} minutes")
-
-            self.loop_count += 1
-
-            # For each time we loop around we will assume we will not be making
-            # a change to the current lift direction
-            send_lift = None
-
-            if self.estop.value:
-                if self.motor_state != LIFT_STOP:
-                    self.stop_lift(reason="ESTOP activated")
-                await asyncio.sleep(SLEEP_TIME)
-                continue
-            
-            # If a limit has been hit, and it's a limit we might hit if we are
-            # going in that direction, stop the motor.
-            if (self.limit_top.value and self.motor_state == LIFT_UP): 
-                self.stop_lift(reason="Top limit being reached")
-                await asyncio.sleep(SLEEP_TIME)
-                continue
-
-            if (self.limit_bottom.value and self.motor_state == LIFT_DOWN):
-
-                self.stop_lift(reason="Bottom limit being reached")
-                await asyncio.sleep(SLEEP_TIME)
-                continue
-
-            # Work out if it is safe to move the lift
-            safe_to_move = self.door_closed_level1.value \
-                and self.door_closed_ground.value \
-                and not self.estop.value
-            
-            if not safe_to_move and self.motor_state != LIFT_STOP:
-                self.stop_lift(reason="It's not safe!")
-                await asyncio.sleep(SLEEP_TIME)
-                continue
-
-            # Check if the calll button was pressed. This code assumes that the value property only
-            # returns true once for each time the button is pressed.
-            call_pressed = self.call_button.value
-
-            # Every second log a debug message about current state of IO inputs
-            if self.loop_count % (1 / SLEEP_TIME) == 0:
-                logging.debug(f"Is it safe to move? {safe_to_move}. Door level 1 {self.door_closed_level1.value} Door ground {self.door_closed_ground.value} Estop {self.estop.value}")
-                logging.debug(f"Lower limit {self.limit_bottom.value} top limit {self.limit_top.value}")
-
-            if call_pressed and not safe_to_move:
-                logger.info("Call pressed when not safe to move")
-            elif call_pressed:
-                # If the motor is running, the user probably wants us to stop the motor
-                if self.motor_state != LIFT_STOP:
-                    self.stop_lift(reason="Call pressed")
-                    await asyncio.sleep(SLEEP_TIME)
-                    continue
-
-                else:
-                    if self.limit_bottom.value and self.limit_top.value:
-                        # oh no. This likely means a limit is stuck.
-                        # TODO: emit a warning.
-                        logger.warning("Both limits are active, likely one is stuck")
-                    # If on a limit, go away from it.
-                    elif self.limit_bottom.value:
-                        send_lift = LIFT_UP
-                        logger.info("Call pressed to send lift up")
-                    elif self.limit_top.value:
-                        send_lift = LIFT_DOWN
-                        logger.info("Call pressed to send lift down")
-                    # If we don't know where the lift is, send it down.
-                    else:
-                        send_lift = LIFT_DOWN
-                        logger.info("Call pressed. Don't know where lift is, send down.")
-
-            if send_lift:
-                self.motor_state = send_lift
-                self.move_lift(send_lift)
-
-            await asyncio.sleep(SLEEP_TIME)
+    safety_time: int = 23
+    
+    def __post_init__(self):
+        self.safety_timer=None
 
 
-    def stop_lift(self, reason=''):
-        if reason != '':
-            logger.info(f"Stop the lift: {reason}")
-        else:
-            logger.info("Stop the lift, probably because of safety timer")
+class LiftLogicMachine(StateMachine):
+    "A simple lift, that moves between two floors, ground floor and level1."
 
-        if self.motor_state != LIFT_STOP:
-            self.motor_state = LIFT_STOP
-            self.raise_lift.off()
-            self.lower_lift.off()
-            if self.safety_timer_stop:
-                self.safety_timer_stop.cancel()
-                self.safety_timer_stop = None
-            asyncio.create_task(run_later(delay=0.2,callback=self.lock_doors.off))
+    # Define the states
+    turned_on = State(initial=True, enter="lock_door", exit="stop")
+    stopped = State()
+    stopped_at_top = State(enter="unlock_door", exit="lock_door")
+    stopped_at_bottom = State()
+    rising = State(enter="start_rising", exit="stop")
+    lowering = State(enter="start_lowering", exit="stop")
 
-    def move_lift(self, direction):
-        asyncio.create_task(run_later(delay=0.2,callback=self.lock_doors.on))
-        if direction == LIFT_UP:
-            logger.info("Raise the lift")
-            self.lower_lift.off()
-            asyncio.create_task(run_later(delay=0.8,callback=self.raise_lift.on))
-        if direction == LIFT_DOWN:
-            logger.info("Lower the lift")
-            self.raise_lift.off()
-            asyncio.create_task(run_later(delay=0.8,callback=self.lower_lift.on))
-        
-        # Setup a safety timer to stop the lift if it takes to long before a limit stops it.
-        self.safety_timer_stop = asyncio.create_task(run_later(delay=SAFETY_TIME,callback=self.stop_lift))
+    # Define the transitions
+    initialise = turned_on.to(stopped)
+    # call, i.e. the call button was pushed.
+    call = stopped.to.itself(cond="not safe_to_move", after='log_unsafe_to_move') \
+        | stopped.to(lowering, cond="safe_to_move") \
+        | stopped_at_top.to(lowering, cond="is_top_limit_active and safe_to_move") \
+        | stopped_at_bottom.to(rising, cond="is_bottom_limit_active and safe_to_move") \
+        | lowering.to(stopped) \
+        | rising.to(stopped)
+    # stop_rising, i.e. the upper limit was pressed
+    stop_rising = rising.to(stopped_at_top, cond="is_top_limit_active") \
+        | rising.to(stopped, cond="timeout_reached") \
+    # stop_lowering, i.e. the lower limit was pressed
+    stop_lowering = lowering.to(stopped_at_bottom, cond="is_bottom_limit_active") \
+        | lowering.to(stopped, cond="timeout_reached") 
+    door_opens = rising.to(stopped) \
+        | lowering.to(stopped) \
+        | stopped.to.itself(internal=True) \
+        | stopped_at_top.to.itself(internal=True) \
+        | stopped_at_bottom.to.itself(internal=True)
+    estop_pressed = rising.to(stopped) \
+        | lowering.to(stopped) \
+        | stopped.to.itself(internal=True) \
+        | stopped_at_top.to.itself(internal=True) \
+        | stopped_at_bottom.to.itself(internal=True)
+
+    
+
+    def on_enter_state(self, event, state):
+        logging.info(f"Entering '{state.id}' state from '{event}' event.")
+
+    def is_top_limit_active(self):
+        return self.model.upper_limit()
+
+    def is_bottom_limit_active(self):
+        return self.model.lower_limit()
+
+    def safe_to_move(self):
+        if self.model.estop() == True:
+            return False
+        if self.model.lower_door_closed() == False:
+            return False
+        if self.model.upper_door_closed() == False:
+            return False
+        return True
+
+    def log_unsafe_to_move(self):
+        logger.info(f"Not safe to move. Estop={self.model.estop()} lower_door_closed={self.model.lower_door_closed()}, upper_door_closed={self.model.upper_door_closed()}")
+
+    def timeout_reached(self):
+        return False
+
+    def start_rising(self):
+        self.model.safety_timer = create_task(run_later(delay=self.model.safety_time,callback=self.stop))
+        self.model.raise_lift.on()
+
+    def start_lowering(self):
+        self.model.safety_timer = create_task(run_later(delay=self.model.safety_time,callback=self.stop))
+        self.model.lower_lift.on()
+
+    def stop(self):
+        if self.model.safety_timer is not None:
+            self.model.safety_timer.cancel()
+            self.model.safety_timer = None
+        self.model.lower_lift.off()
+        self.model.raise_lift.off()
+
+    def lock_door(self):
+        logger.info("Lock the door")
+        self.model.lock_door.on()
+
+    def unlock_door(self):
+        logger.info("Unlock the door")
+        self.model.lock_door.off()
+
+
