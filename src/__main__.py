@@ -28,6 +28,7 @@ class OutPin(Output):
 class InPin(Input):
     def __init__(self, pin, pull_up = False):
         self.dev = Button(pin=pin, bounce_time=0.01, pull_up=pull_up)
+        self.main_loop = asyncio.get_running_loop()
 
     def __call__(self):
         return self.dev.value
@@ -38,9 +39,17 @@ class InPin(Input):
 
     @falling_edge_callback.setter
     def falling_edge_callback(self, value: Callable):
-        self.dev.when_deactivated = value
+        
+        # If the callback is set, we need to store it somewhere, and then setup the gpio device
+        # to fire a callback when the event occurs. But gpio creates a new thread which executes 
+        # the callback. I want the callback to occur in the main thread.
+        self.callable_to_fire_on_failling_edge = value
+        self.dev.when_deactivated = self._falling_call_soon_wrapper
 
-def main(argv):
+    def _falling_call_soon_wrapper(self):
+        self.loop.call_soon_threadsafe(self.callable_to_fire_on_failling_edge)
+
+async def main(argv):
 
     parser = argparse.ArgumentParser(prog='lift control logic')
     parser.add_argument('-d', '--debug', action='store_true')
