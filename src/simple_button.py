@@ -7,7 +7,7 @@ import asyncio
 async def run(button):
     while True:
         print(f"{button.value}")
-        sleep(1)
+        await asyncio.sleep(1)
 
 def main(argv):
     parser = argparse.ArgumentParser(
