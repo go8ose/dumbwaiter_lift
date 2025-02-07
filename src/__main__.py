@@ -47,7 +47,7 @@ class InPin(Input):
         self.dev.when_deactivated = self._falling_call_soon_wrapper
 
     def _falling_call_soon_wrapper(self):
-        self.loop.call_soon_threadsafe(self.callable_to_fire_on_failling_edge)
+        self.main_loop.call_soon_threadsafe(self.callable_to_fire_on_failling_edge)
 
 async def main(argv):
 
