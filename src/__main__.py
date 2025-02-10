@@ -43,11 +43,27 @@ class InPin(Input):
         # If the callback is set, we need to store it somewhere, and then setup the gpio device
         # to fire a callback when the event occurs. But gpio creates a new thread which executes 
         # the callback. I want the callback to occur in the main thread.
-        self.callable_to_fire_on_failling_edge = value
+        self.callable_to_fire_on_falling_edge = value
         self.dev.when_deactivated = self._falling_call_soon_wrapper
 
     def _falling_call_soon_wrapper(self):
-        self.main_loop.call_soon_threadsafe(self.callable_to_fire_on_failling_edge)
+        self.main_loop.call_soon_threadsafe(self.callable_to_fire_on_falling_edge)
+
+    @property
+    def rising_edge_callback(self):
+        return self.dev.when_activated
+
+    @rising_edge_callback.setter
+    def rising_edge_callback(self, value: Callable):
+        
+        # If the callback is set, we need to store it somewhere, and then setup the gpio device
+        # to fire a callback when the event occurs. But gpio creates a new thread which executes 
+        # the callback. I want the callback to occur in the main thread.
+        self.callable_to_fire_on_rising_edge = value
+        self.dev.when_activated = self._rising_call_soon_wrapper
+
+    def _rising_call_soon_wrapper(self):
+        self.main_loop.call_soon_threadsafe(self.callable_to_fire_on_rising_edge)
 
 async def main(argv):
 
@@ -91,17 +107,18 @@ async def main(argv):
     llm = LiftLogicMachine(model)
     
     # Wire up the triggers to the lift logic
-    pinI_call_pb.falling_edge_callback = lambda: llm.call
-    pinI_lower_limit.rising_edge_callback = lambda: llm.stop_lowering
-    pinI_upper_limit.rising_edge_callback = lambda: llm.stop_rising
-    pinI_door_closed_level1.falling_edge_callback = lambda: llm.door_opens
-    pinI_door_closed_ground.falling_edge_callback = lambda: llm.door_opens
-    pinI_estop.rising_edge_callback = lambda: llm.estop_pressed
+    pinI_call_pb.falling_edge_callback = lambda: llm.call()
+    pinI_lower_limit.rising_edge_callback = lambda: llm.stop_lowering()
+    pinI_upper_limit.rising_edge_callback = lambda: llm.stop_rising()
+    pinI_door_closed_level1.falling_edge_callback = lambda: llm.door_opens()
+    pinI_door_closed_ground.falling_edge_callback = lambda: llm.door_opens()
+    pinI_estop.rising_edge_callback = lambda: llm.estop_pressed()
 
     llm.initialise()
     
 
-    pause()
+    while True:
+        await asyncio.sleep(10)
 
 
 if __name__ == '__main__':
