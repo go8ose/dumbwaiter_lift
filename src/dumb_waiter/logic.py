@@ -93,7 +93,7 @@ class LiftLogicMachine(StateMachine):
         return True
 
     def log_unsafe_to_move(self):
-        logger.info(f"Not safe to move. Estops=[{self.model.estop1()} {self.mode.estop2()}] lower_door_closed={self.model.lower_door_closed()}, upper_door_closed={self.model.upper_door_closed()}")
+        logger.info(f"Not safe to move. Estops=[{self.model.estop1()} {self.model.estop2()}] lower_door_closed={self.model.lower_door_closed()}, upper_door_closed={self.model.upper_door_closed()}")
 
     def timeout_reached(self):
         return False
