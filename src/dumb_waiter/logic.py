@@ -54,11 +54,9 @@ class LiftLogicMachine(StateMachine):
         | lowering.to(stopped) \
         | rising.to(stopped)
     # stop_rising, i.e. the upper limit was pressed
-    stop_rising = rising.to(stopped_at_top, cond="is_top_limit_active") \
-        | rising.to(stopped, cond="timeout_reached") \
+    stop_rising = rising.to(stopped_at_top, cond="is_top_limit_active")
     # stop_lowering, i.e. the lower limit was pressed
-    stop_lowering = lowering.to(stopped_at_bottom, cond="is_bottom_limit_active") \
-        | lowering.to(stopped, cond="timeout_reached") 
+    stop_lowering = lowering.to(stopped_at_bottom, cond="is_bottom_limit_active")
     door_opens = rising.to(stopped) \
         | lowering.to(stopped) \
         | stopped.to.itself(internal=True) \
@@ -69,6 +67,8 @@ class LiftLogicMachine(StateMachine):
         | stopped.to.itself(internal=True) \
         | stopped_at_top.to.itself(internal=True) \
         | stopped_at_bottom.to.itself(internal=True)
+    safety_timeout = rising.to(stopped) \
+        | lowering.to(stopped)
 
     
 
@@ -95,15 +95,12 @@ class LiftLogicMachine(StateMachine):
     def log_unsafe_to_move(self):
         logger.info(f"Not safe to move. Estops=[{self.model.estop1()} {self.model.estop2()}] lower_door_closed={self.model.lower_door_closed()}, upper_door_closed={self.model.upper_door_closed()}")
 
-    def timeout_reached(self):
-        return False
-
     def start_rising(self):
-        self.model.safety_timer = create_task(run_later(delay=self.model.safety_time,callback=self.stop))
+        self.model.safety_timer = create_task(run_later(delay=self.model.safety_time, callback=self.safety_timeout))
         self.model.raise_lift.on()
 
     def start_lowering(self):
-        self.model.safety_timer = create_task(run_later(delay=self.model.safety_time,callback=self.stop))
+        self.model.safety_timer = create_task(run_later(delay=self.model.safety_time,callback=self.safety_timeout))
         self.model.lower_lift.on()
 
     def stop(self):

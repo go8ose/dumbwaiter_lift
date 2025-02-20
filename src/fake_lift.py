@@ -34,7 +34,7 @@ async def main():
         lower_lift=outputs['lower'],
         lock_door_top=outputs['lock_door_top'],
         lock_door_bottom=outputs['lock_door_bottom'],
-        safety_time=23,
+        safety_time=5,
         )
     llm = LiftLogicMachine(model)
     #inputs['estop'].rising_edge_callback = lambda: llm.estop_pressed()
