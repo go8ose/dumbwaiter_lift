@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class LiftLogicModel:
-    estop: Input 
+    estop1: Input 
+    estop2: Input 
     lower_limit: Input
     upper_limit: Input
     upper_door_closed: Input
@@ -23,7 +24,8 @@ class LiftLogicModel:
 
     raise_lift: Output
     lower_lift: Output
-    lock_door: Output
+    lock_door_top: Output
+    lock_door_bottom: Output
 
     safety_time: int = 23
     
@@ -80,7 +82,9 @@ class LiftLogicMachine(StateMachine):
         return self.model.lower_limit()
 
     def safe_to_move(self):
-        if self.model.estop() == True:
+        if self.model.estop1() == True:
+            return False
+        if self.model.estop2() == True:
             return False
         if self.model.lower_door_closed() == False:
             return False
@@ -89,7 +93,7 @@ class LiftLogicMachine(StateMachine):
         return True
 
     def log_unsafe_to_move(self):
-        logger.info(f"Not safe to move. Estop={self.model.estop()} lower_door_closed={self.model.lower_door_closed()}, upper_door_closed={self.model.upper_door_closed()}")
+        logger.info(f"Not safe to move. Estops=[{self.model.estop1()} {self.mode.estop2()}] lower_door_closed={self.model.lower_door_closed()}, upper_door_closed={self.model.upper_door_closed()}")
 
     def timeout_reached(self):
         return False
@@ -111,10 +115,12 @@ class LiftLogicMachine(StateMachine):
 
     def lock_door(self):
         logger.info("Lock the door")
-        self.model.lock_door.on()
+        self.model.lock_door_top.on()
+        self.model.lock_door_bottom.on()
 
     def unlock_door(self):
         logger.info("Unlock the door")
-        self.model.lock_door.off()
+        self.model.lock_door_top.off()
+        self.model.lock_door_bottom.off()
 
 

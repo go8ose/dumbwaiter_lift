@@ -81,38 +81,45 @@ async def main(argv):
     # Output pins
     pinO_drive_lift_up = OutPin("BOARD7")
     pinO_drive_lift_down = OutPin("BOARD11")
-    pinO_lock_door = OutPin("BOARD31")
+    pinO_lock_door_top = OutPin("BOARD31")
+    pinO_lock_door_bottom = OutPin("BOARD33")
 
 
     # Input pins
-    pinI_call_pb = InPin("BOARD13", pull_up=True)
+    pinI_call_pb_top = InPin("BOARD13", pull_up=True)
+    pinI_call_pb_bottom = InPin("BOARD13", pull_up=True)
     pinI_lower_limit = InPin("BOARD15", pull_up=True)
     pinI_upper_limit = InPin("BOARD16", pull_up=True)
     pinI_door_closed_level1 = InPin("BOARD18", pull_up=True)
     pinI_door_closed_ground = InPin("BOARD22", pull_up=True)
-    pinI_estop = InPin("BOARD29", pull_up=True)
+    pinI_estop_top = InPin("BOARD29", pull_up=True)
+    pinI_estop_bottom = InPin("BOARD40", pull_up=True)
 
     model = LiftLogicModel(
-        estop=pinI_estop,
+        estop1=pinI_estop_top,
+        estop2=pinI_estop_bottom,
         lower_limit=pinI_lower_limit,
         upper_limit=pinI_upper_limit,
         upper_door_closed=pinI_door_closed_level1,
         lower_door_closed=pinI_door_closed_ground,
         raise_lift=pinO_drive_lift_up,
         lower_lift=pinO_drive_lift_down,
-        lock_door=pinO_lock_door,
+        lock_door_top=pinO_lock_door_top,
+        lock_door_bottom=pinO_lock_door_bottom,
         #TODO: use argparser paramter
         safety_time=args.safety_timer,
     )
     llm = LiftLogicMachine(model)
     
     # Wire up the triggers to the lift logic
-    pinI_call_pb.falling_edge_callback = lambda: llm.call()
+    pinI_call_pb_top.falling_edge_callback = lambda: llm.call()
+    pinI_call_pb_bottom.falling_edge_callback = lambda: llm.call()
     pinI_lower_limit.rising_edge_callback = lambda: llm.stop_lowering()
     pinI_upper_limit.rising_edge_callback = lambda: llm.stop_rising()
     pinI_door_closed_level1.falling_edge_callback = lambda: llm.door_opens()
     pinI_door_closed_ground.falling_edge_callback = lambda: llm.door_opens()
-    pinI_estop.rising_edge_callback = lambda: llm.estop_pressed()
+    pinI_estop_top.rising_edge_callback = lambda: llm.estop_pressed()
+    pinI_estop_bottom.rising_edge_callback = lambda: llm.estop_pressed()
 
     llm.initialise()
     
