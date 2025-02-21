@@ -87,7 +87,7 @@ async def main(argv):
 
     # Input pins
     pinI_call_pb_top = InPin("BOARD13", pull_up=True)
-    pinI_call_pb_bottom = InPin("BOARD13", pull_up=True)
+    pinI_call_pb_bottom = InPin("BOARD38", pull_up=True)
     pinI_lower_limit = InPin("BOARD15", pull_up=True)
     pinI_upper_limit = InPin("BOARD16", pull_up=True)
     pinI_door_closed_level1 = InPin("BOARD18", pull_up=True)
