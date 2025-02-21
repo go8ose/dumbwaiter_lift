@@ -9,6 +9,7 @@ from gpiozero import DigitalInputDevice, OutputDevice, Button
 
 from dumb_waiter.logic import LiftLogicMachine, LiftLogicModel
 from dumb_waiter.io import Input,Output
+from dumb_waiter.util import ainput
 
 
 class OutPin(Output):
@@ -70,6 +71,8 @@ async def main(argv):
     parser = argparse.ArgumentParser(prog='lift control logic')
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('--safety-timer', action='store_true', default=23)
+    parser.add_argument('--check-io', action='store_true', default=False,
+        help="""Before starting the logic to drive the lift prompt the user and check each input""")
     args = parser.parse_args(argv[1:])
 
     if args.debug:
@@ -87,13 +90,91 @@ async def main(argv):
 
     # Input pins
     pinI_call_pb_top = InPin("BOARD13", pull_up=True)
-    pinI_call_pb_bottom = InPin("BOARD13", pull_up=True)
+    pinI_call_pb_bottom = InPin("BOARD38", pull_up=True)
     pinI_lower_limit = InPin("BOARD15", pull_up=True)
     pinI_upper_limit = InPin("BOARD16", pull_up=True)
     pinI_door_closed_level1 = InPin("BOARD18", pull_up=True)
     pinI_door_closed_ground = InPin("BOARD22", pull_up=True)
     pinI_estop_top = InPin("BOARD29", pull_up=True)
     pinI_estop_bottom = InPin("BOARD40", pull_up=True)
+
+    if args.check_io:
+
+        print("For this test both doors will be unlocked")
+        pinO_lock_door_top.off()
+        pinO_lock_door_bottom.off()
+        answer = await ainput('Please confirm both doors are unlocked: (Enter "y" or "n"):')
+        if answer.lower() not in ('y', 'yes'):
+            raise SystemExit('Abandoning --check-io run')
+
+        input_was_activated = False
+        def input_fired():
+            input_was_activated = True
+        print("Let's check all the inputs")
+
+        inputs = [
+            (pinI_estop_top, "EStop top"),
+            (pinI_estop_bottom, "EStop bottom"),
+            (pinI_call_pb_top, "Call button top"),
+            (pinI_call_pb_bottom, "Call button bottom"),
+            (pinI_lower_limit, "Lower Limit"),
+            (pinI_upper_limit, "Upper Limit"),
+            (pinI_door_closed_level1, "Door Closed Level 1"),
+            (pinI_door_closed_ground, "Door Closed Ground"),
+        ]
+
+        for (pin, message) in inputs:
+            pin.falling_edge_callback = input_fired
+            print(f'Please activate and then deactivate {message}')
+            while not input_was_activated:
+                # TODO: It would be nice if the input_fired() interrupted this sleep. Then I 
+                # could make the sleep longer, and each time through the loop post a new message so
+                # the operator knows the script is still running.
+                await asyncio.sleep(0.5)
+            pinI_call_pb_top.falling_edge_callback = None
+            input_was_activated = False
+
+        print("We will soon check the motor.")
+        while pinI_door_closed_ground() == False:
+            print("Please shut the ground door")
+            await asyncio.sleep(3.5)
+        while pinI_door_closed_level1() == False:
+            print("Please shut the level 1 door")
+            await asyncio.sleep(3.5)
+
+
+        answer = ''
+        # todo loop for right answer?
+        while answer.lower() not in ('u', 'd', 'up', 'down'):
+            answer = await ainput('We will move the lift for 1 second. Do you want it to move up or down? (Please enter "u" or "d") ')
+
+        direction = 'up' if answer in ['u', 'up'] else 'down'
+        print(f"About to move lift {direction}")
+        await asyncio.sleep(1)
+        if direction == 'up':
+            pinO_drive_lift_up.on()
+            await asyncio.sleep(1)
+            pinO_drive_lift_up.off()
+        else:
+            pinO_drive_lift_down.on()
+            await asyncio.sleep(1)
+            pinO_drive_lift_down.off()
+
+        print("Now we will move the lift in the other direction for 1 second")
+        direction = 'up' if direction == 'down' else 'down'
+        print(f"Move lift {direction}")
+        await asyncio.sleep(1)
+        if direction == 'up':
+            pinO_drive_lift_up.on()
+            await asyncio.sleep(1)
+            pinO_drive_lift_up.off()
+        else:
+            pinO_drive_lift_down.on()
+            await asyncio.sleep(1)
+            pinO_drive_lift_down.off()
+
+        print("Testing finished, exiting")
+        raise SystemExit()
 
     model = LiftLogicModel(
         estop1=pinI_estop_top,

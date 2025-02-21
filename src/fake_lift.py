@@ -4,6 +4,7 @@ import logging
 
 from dumb_waiter.logic import LiftLogicMachine, LiftLogicModel
 from dumb_waiter.io import Input, Output
+from dumb_waiter.util import ainput
 
 async def main():
 
@@ -85,10 +86,6 @@ async def main():
         if command == 'off':
             inputs[input_].off()
             continue
-
-async def ainput(string: str) -> str:
-    await asyncio.to_thread(sys.stdout.write, f'{string} ')
-    return (await asyncio.to_thread(sys.stdin.readline)).rstrip('\n')
 
 class FakeDigitalInput(Input):
     def __init__(self, initial=False):
