@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "gpiozero>=2.0.1",
+    "lgpio>=0.2.2.0",
     "python-statemachine>=2.5.0"
 ]
 [project.optional-dependencies]
