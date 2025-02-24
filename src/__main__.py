@@ -13,8 +13,8 @@ from dumb_waiter.util import ainput
 
 
 class OutPin(Output):
-    def __init__(self, pin, initial_value=False):
-        self.dev = OutputDevice(pin=pin, initial_value=initial_value)
+    def __init__(self, pin, initial_value=False, active_high=True):
+        self.dev = OutputDevice(pin=pin, initial_value=initial_value, active_high=active_high)
 
     @property
     def value(self):
@@ -82,8 +82,8 @@ async def main(argv):
 
     
     # Output pins
-    pinO_drive_lift_up = OutPin("BOARD7")
-    pinO_drive_lift_down = OutPin("BOARD11")
+    pinO_drive_lift_up = OutPin("BOARD7", active_high=False)
+    pinO_drive_lift_down = OutPin("BOARD11", active_high=False)
     pinO_lock_door_top = OutPin("BOARD31")
     pinO_lock_door_bottom = OutPin("BOARD33")
 
