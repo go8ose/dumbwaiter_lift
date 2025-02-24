@@ -1,0 +1,12 @@
+[Unit]
+Description=Dumb waiter lift
+[Service]
+Type=simple
+# User=
+# Group=
+ExecStart=%h/venv-lift/bin/python %h/dumbwaiter_lift/src/__main__.py
+Restart=on-failure
+StandardOutput=journal
+StandardError=journal
+[Install]
+WantedBy=default.target
