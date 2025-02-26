@@ -10,9 +10,10 @@ To use this software you should: (this is an aspirational series of steps, they 
  0. setup your raspberry pi so you have console access to it, python is installed, and pip-tools is installed.
  1. clone the repo to your raspberry pi, preferably into ~/dumbwaiter_lift
  2. create a python venv (preferrably in ~/venv-lift) and activate it
- 3. compile the dependencies, by running: pip-compile
- 4. install dependencies, by running: python -m pip install .
- 5. run it by executing dumbwaiter_lift (or maybe: python ~/dumbwaiter_lift/src/__main__.py)
+    1. python -m venv ~/venv-lift
+    1. source ~/venv-lift/bin/activate
+ 3. Install the requirements. Run pip install -r ~/dumbwaiter_lift/requirements.txt
+ 4. run it by executing dumbwaiter_lift (or maybe: python ~/dumbwaiter_lift/src/__main__.py)
 
  Once you are happy with it working you could copy the systemd-user.service file to ~/.config/systemd/user/dumb-waiter.service, and then run 'systemctl --user start dumb-waiter.service'.
 

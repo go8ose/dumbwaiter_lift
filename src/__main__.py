@@ -84,8 +84,8 @@ async def main(argv):
     # Output pins
     pinO_drive_lift_up = OutPin("BOARD7", active_high=False)
     pinO_drive_lift_down = OutPin("BOARD11", active_high=False)
-    pinO_lock_door_top = OutPin("BOARD31")
-    pinO_lock_door_bottom = OutPin("BOARD33")
+    pinO_lock_door_top = OutPin("BOARD31", active_high=False)
+    pinO_lock_door_bottom = OutPin("BOARD33", active_high=False)
 
 
     # Input pins
@@ -109,6 +109,7 @@ async def main(argv):
 
         input_was_activated = False
         def input_fired():
+            nonlocal input_was_activated
             input_was_activated = True
         print("Let's check all the inputs")
 
@@ -131,7 +132,7 @@ async def main(argv):
                 # could make the sleep longer, and each time through the loop post a new message so
                 # the operator knows the script is still running.
                 await asyncio.sleep(0.5)
-            pinI_call_pb_top.falling_edge_callback = None
+            pin.falling_edge_callback = None
             input_was_activated = False
 
         print("We will soon check the motor.")
