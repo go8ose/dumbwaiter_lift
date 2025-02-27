@@ -115,12 +115,12 @@ async def main(argv):
 
         inputs = [
             (pinI_estop_top, "EStop top"),
-            (pinI_estop_bottom, "EStop bottom"),
             (pinI_call_pb_top, "Call button top"),
-            (pinI_call_pb_bottom, "Call button bottom"),
-            (pinI_lower_limit, "Lower Limit"),
             (pinI_upper_limit, "Upper Limit"),
             (pinI_door_closed_level1, "Door Closed Level 1"),
+            (pinI_estop_bottom, "EStop bottom"),
+            (pinI_call_pb_bottom, "Call button bottom"),
+            (pinI_lower_limit, "Lower Limit"),
             (pinI_door_closed_ground, "Door Closed Ground"),
         ]
 
@@ -147,31 +147,32 @@ async def main(argv):
         answer = ''
         # todo loop for right answer?
         while answer.lower() not in ('u', 'd', 'up', 'down'):
-            answer = await ainput('We will move the lift for 1 second. Do you want it to move up or down? (Please enter "u" or "d") ')
+            answer = await ainput('We will move the lift for a short timer. Do you want it to move up or down? (Please enter "u" or "d") ')
 
+        motor_check_duration = 4
         direction = 'up' if answer in ['u', 'up'] else 'down'
         print(f"About to move lift {direction}")
-        await asyncio.sleep(1)
+        await asyncio.sleep(motor_check_duration)
         if direction == 'up':
             pinO_drive_lift_up.on()
-            await asyncio.sleep(1)
+            await asyncio.sleep(motor_check_duration)
             pinO_drive_lift_up.off()
         else:
             pinO_drive_lift_down.on()
-            await asyncio.sleep(1)
+            await asyncio.sleep(motor_check_duration)
             pinO_drive_lift_down.off()
 
-        print("Now we will move the lift in the other direction for 1 second")
+        print("Now we will move the lift in the other direction for a short time")
         direction = 'up' if direction == 'down' else 'down'
         print(f"Move lift {direction}")
-        await asyncio.sleep(1)
+        await asyncio.sleep(motor_check_duration)
         if direction == 'up':
             pinO_drive_lift_up.on()
-            await asyncio.sleep(1)
+            await asyncio.sleep(motor_check_duration)
             pinO_drive_lift_up.off()
         else:
             pinO_drive_lift_down.on()
-            await asyncio.sleep(1)
+            await asyncio.sleep(motor_check_duration)
             pinO_drive_lift_down.off()
 
         print("Testing finished, exiting")

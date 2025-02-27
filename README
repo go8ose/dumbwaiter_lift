@@ -16,4 +16,4 @@ To use this software you should: (this is an aspirational series of steps, they 
  4. run it by executing dumbwaiter_lift (or maybe: python ~/dumbwaiter_lift/src/__main__.py)
 
  Once you are happy with it working you could copy the systemd-user.service file to ~/.config/systemd/user/dumb-waiter.service, and then run 'systemctl --user start dumb-waiter.service'.
-
+After you have don that run `journalctl --user -u dumb-waiter.service -f` to see the log output from the script.

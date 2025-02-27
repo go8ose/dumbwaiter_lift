@@ -40,7 +40,7 @@ class LiftLogicMachine(StateMachine):
     turned_on = State(initial=True, enter="lock_door", exit="stop")
     stopped = State()
     stopped_at_top = State(enter="unlock_door", exit="lock_door")
-    stopped_at_bottom = State()
+    stopped_at_bottom = State(enter="unlock_door", exit="lock_door")
     rising = State(enter="start_rising", exit="stop")
     lowering = State(enter="start_lowering", exit="stop")
 
